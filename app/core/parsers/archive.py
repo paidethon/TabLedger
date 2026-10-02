@@ -57,31 +57,26 @@ def _check_zip_safety(archive: zipfile.ZipFile, display_name: str) -> list[zipfi
 def unzip_bill(zip_path_or_bytes, passwords: list[str], display_name: str = "账单.zip"):
     """Decrypt a bill zip (auto-trying passwords), return (data, inner filename).
 
-    Passwords live only in this call frame; they are never logged.
+    Passwords live only in this call frame; they are never logged.  Each
+    trial re-opens the archive: a failed trial invalidates the ZipFile.
     """
 
-    if isinstance(zip_path_or_bytes, (bytes, bytearray)):
-        opener = zipfile.ZipFile(io.BytesIO(bytes(zip_path_or_bytes)))
-        close_after = True
-    else:
-        opener = zipfile.ZipFile(zip_path_or_bytes)
-        close_after = False
+    def _open():
+        if isinstance(zip_path_or_bytes, (bytes, bytearray)):
+            return zipfile.ZipFile(io.BytesIO(bytes(zip_path_or_bytes)))
+        return zipfile.ZipFile(zip_path_or_bytes)
 
     last_error: Exception = ArchiveError("未提供密码")
-    try:
-        for password in passwords or [""]:
-            try:
-                with opener as archive:
-                    archive.setpassword(password.encode("utf-8"))
-                    infos = _check_zip_safety(archive, display_name)
-                    if len(infos) != 1:
-                        raise ArchiveError(f"{display_name} 内应有且只有一个数据文件，实际 {len(infos)} 个")
-                    return archive.read(infos[0]), fix_zip_name(infos[0])
-            except Exception as exc:  # noqa: BLE001 - password trial loop
-                last_error = exc
-    finally:
-        if close_after:
-            opener.close()
+    for password in passwords or [""]:
+        try:
+            with _open() as archive:
+                archive.setpassword(password.encode("utf-8"))
+                infos = _check_zip_safety(archive, display_name)
+                if len(infos) != 1:
+                    raise ArchiveError(f"{display_name} 内应有且只有一个数据文件，实际 {len(infos)} 个")
+                return archive.read(infos[0]), fix_zip_name(infos[0])
+        except Exception as exc:  # noqa: BLE001 - password trial loop
+            last_error = exc
     if isinstance(last_error, ArchiveError):
         raise last_error
     raise ArchiveError(f"{display_name} 解压失败（密码不匹配？）：{type(last_error).__name__}")
