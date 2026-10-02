@@ -1,0 +1,61 @@
+[project]
+name = "tabledger"
+version = "0.1.0"
+description = "TabLedger - privacy-first personal bill consolidation, cross-source reconciliation and Yimu import export"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "TabLedger contributors" }]
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "argon2-cffi>=23.1",
+    "pdfplumber>=0.11",
+    "pikepdf>=9.4",
+    "defusedxml>=0.7",
+    "python-multipart>=0.0.17",
+    "litellm>=1.52",
+    "rapidfuzz>=3.10",
+    "openpyxl>=3.1",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.7",
+    "pip-audit>=2.3",
+    "reportlab>=4.2",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "private: regression tests that require the user's local real bill data (never run in CI)",
+]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "S", "RUF"]
+ignore = ["S101", "B008", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S108"]
+"app/core/exporters/biff8.py" = ["E741"]
