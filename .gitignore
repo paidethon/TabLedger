@@ -1,0 +1,80 @@
+# ==== TabLedger privacy boundary ====
+# Legacy workspace and local private data. NEVER commit these.
+/old/
+/private/
+/data/
+/收件箱/
+/inbox/
+/uploads/
+/exports/
+/tmp/
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+secrets/
+/data/secrets/
+
+# Real user bills: raw statements must never enter the repository.
+# Synthetic fixtures live in tests/fixtures/synthetic/ and are tracked.
+# (We deliberately do NOT ignore *.csv / *.xlsx globally so synthetic
+#  fixtures can be tracked; the patterns below only catch the classic
+#  legacy artifact names used by the old pipeline.)
+原始/
+提取/
+*entries.json
+*ledger.json
+*退款回链.json
+*分类表.csv
+*分类词典.csv
+*待分类清单.csv
+一木记账*.xls
+一木记账*.xlsx
+*核对.xlsx
+账本.md
+
+# Screenshots (could contain passwords or personal data)
+*.png
+!docs/**/*.png
+!web/public/**/*.png
+!web/**/*.png
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+
+# Node / frontend
+node_modules/
+web/dist/
+playwright-report/
+test-results/
+.tanstack/
+
+# Tooling
+.mimosa/
+.video_agent/
+.zcode/
+.DS_Store
