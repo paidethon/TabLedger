@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --color-lumi-bg: oklch(0.985 0.003 95);
+  --color-lumi-surface: oklch(1 0 0);
+  --color-lumi-ink: oklch(0.24 0.015 80);
+  --color-lumi-muted: oklch(0.52 0.015 80);
+  --color-lumi-line: oklch(0.92 0.005 80);
+  --color-lumi-accent: oklch(0.62 0.12 45);
+  --color-lumi-accent-soft: oklch(0.95 0.03 50);
+  --color-lumi-good: oklch(0.62 0.13 155);
+  --color-lumi-warn: oklch(0.72 0.14 75);
+  --color-lumi-bad: oklch(0.6 0.18 25);
+
+  --radius-card: 0.875rem;
+}
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+  --color-lumi-bg: oklch(0.21 0.01 80);
+  --color-lumi-surface: oklch(0.26 0.012 80);
+  --color-lumi-ink: oklch(0.92 0.005 80);
+  --color-lumi-muted: oklch(0.65 0.01 80);
+  --color-lumi-line: oklch(0.33 0.01 80);
+  --color-lumi-accent: oklch(0.7 0.12 50);
+  --color-lumi-accent-soft: oklch(0.3 0.04 50);
+}
+
+html {
+  background: var(--color-lumi-bg);
+  color: var(--color-lumi-ink);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "PingFang SC",
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-lumi-accent);
+  outline-offset: 2px;
+}
