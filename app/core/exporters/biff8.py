@@ -346,10 +346,12 @@ def directory_entry(
 def build_cfb(workbook_stream: bytes) -> bytes:
     """Wrap a BIFF Workbook stream in a minimal valid CFB v3 container."""
 
+    # CFB stores streams below 4096 bytes in the mini-stream, which this
+    # writer does not implement.  Small workbooks are zero-padded up to the
+    # cutoff; readers stop at the BIFF EOF record, so trailing zeros are
+    # ignored by Excel and by the strict read-back validator.
     if len(workbook_stream) < 4096:
-        # This workbook is always much larger; rejecting prevents an accidental
-        # invalid regular-sector stream below the mini-stream cutoff.
-        raise ValueError("Workbook stream is unexpectedly below the 4096-byte cutoff")
+        workbook_stream = workbook_stream.ljust(4096, b"\x00")
 
     workbook_sector_count = (len(workbook_stream) + SECTOR_SIZE - 1) // SECTOR_SIZE
     directory_sector_count = 1
