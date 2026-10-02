@@ -78,3 +78,6 @@ test-results/
 .video_agent/
 .zcode/
 .DS_Store
+.playwright-mcp/
+.serena/
+shots/
