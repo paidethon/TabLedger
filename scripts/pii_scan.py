@@ -48,6 +48,10 @@ ALLOW_PATTERNS = [
     re.compile(r"PATTERNS|ALLOW_PATTERNS|re\.compile"),
     # SQLAlchemy-style URLs: driver://user:pass@host/db
     re.compile(r"://[\w.:-]+@"),
+    # GitHub Actions refs and workflow expressions: `uses: x/y@v4`, `${{ }}`.
+    re.compile(r"uses:\s"),
+    re.compile(r"actions/@|@v\d"),
+    re.compile(r"\$\{\{"),
 ]
 
 # Legacy personal markers that must never appear in tracked content.
