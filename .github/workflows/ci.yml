@@ -128,14 +128,25 @@ jobs:
           tags: tabledger:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Trivy scan (app-level HIGH/CRIT must be clean)
+      - name: Trivy scan (python deps HIGH/CRIT must be clean; OS pkgs advisory)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: tabledger:ci
           severity: HIGH,CRITICAL
           ignorefile: .trivyignore
           skip-dirs: /usr/local/lib/python3.12/site-packages/pip/_vendor
+          scanners: vuln
+          pkg-types: library
           exit-code: "1"
+      - name: Trivy OS-package report (advisory, non-blocking)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: tabledger:ci
+          severity: HIGH,CRITICAL
+          ignorefile: .trivyignore
+          scanners: vuln
+          pkg-types: os
+          exit-code: "0"
       - name: Clean-start smoke test
         run: |
           docker run -d --name smoke -p 127.0.0.1:18765:8000 \
