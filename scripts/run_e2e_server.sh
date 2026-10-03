@@ -17,8 +17,15 @@ cleanup() {
 }
 trap 'cleanup' EXIT
 
+# Prefer the project venv when present (local dev); CI uses system python.
+if [ -x .venv/bin/python ]; then
+  PYTHON=.venv/bin/python
+else
+  PYTHON=python3
+fi
+
 # Random one-off password for the throwaway instance.
-.venv/bin/python -c 'import secrets; print("".join(secrets.choice("abcdefghjkmnpqrstuvwxyz23456789") for _ in range(16)))' > "$PASSWORD_FILE"
+"$PYTHON" -c 'import secrets; print("".join(secrets.choice("abcdefghjkmnpqrstuvwxyz23456789") for _ in range(16)))' > "$PASSWORD_FILE"
 
 export TAB_DATA_DIR="$DATA_DIR"
 export TAB_BOOTSTRAP_ADMIN=admin
@@ -27,7 +34,7 @@ TAB_BOOTSTRAP_PASSWORD="$(cat "$PASSWORD_FILE")"
 export TAB_COOKIE_NAME=tab_session
 export TAB_INSECURE_COOKIES=1
 export TAB_SECRET_KEY=e2e-secret
-.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port "$PORT" &
+"$PYTHON" -m uvicorn app.main:app --host 127.0.0.1 --port "$PORT" &
 SERVER_PID=$!
 
 for _ in $(seq 1 50); do
