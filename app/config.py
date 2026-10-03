@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     # AI defaults
     ai_default_timeout: int = 60
     log_level: str = "INFO"
+    # Override for the built frontend directory (used by the Docker image).
+    static_dir_override: str = ""
 
     @property
     def database_path(self) -> Path:

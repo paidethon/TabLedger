@@ -1,0 +1,18 @@
+services:
+  tabledger:
+    image: ghcr.io/paidethon/tabledger:latest
+    build: .
+    container_name: tabledger
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8765:8000"
+    volumes:
+      - ./data:/data
+    environment:
+      TAB_BOOTSTRAP_ADMIN: ${TAB_BOOTSTRAP_ADMIN:-admin}
+      TAB_BOOTSTRAP_PASSWORD: ${TAB_BOOTSTRAP_PASSWORD:?set TAB_BOOTSTRAP_PASSWORD in a local .env file}
+    tmpfs:
+      - /tmp
+    read_only: true
+    security_opt:
+      - no-new-privileges:true

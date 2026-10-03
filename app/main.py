@@ -18,8 +18,7 @@ from app.api import jobs as jobs_api
 from app.api import settings as settings_api
 from app.api.auth import ensure_bootstrap_admin
 from app.config import get_settings
-from app.db.database import db_session, get_engine
-from app.db.models import Base, utcnow
+from app.db.database import db_session
 from app.services import job_service
 
 logger = logging.getLogger("tabledger")
@@ -44,6 +43,23 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+def _run_migrations() -> None:
+    """Apply Alembic migrations at startup; a failure aborts startup safely
+    without touching or deleting any existing data."""
+
+    from alembic import command
+    from alembic.config import Config
+
+    ini_path = Path(__file__).resolve().parent.parent / "alembic.ini"
+    alembic_cfg = Config(str(ini_path))
+    alembic_cfg.set_main_option("script_location", str(Path(__file__).resolve().parent / "db" / "migrations"))
+    try:
+        command.upgrade(alembic_cfg, "head")
+    except Exception:
+        logger.exception("database migration failed; refusing to start")
+        raise
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title=settings.app_name, version=settings.version, docs_url=None, redoc_url=None, openapi_url=None)
@@ -61,7 +77,7 @@ def create_app() -> FastAPI:
     def on_startup() -> None:
         settings.ensure_secret_key()
         settings.data_dir.mkdir(parents=True, exist_ok=True)
-        Base.metadata.create_all(get_engine())
+        _run_migrations()
         with db_session() as db:
             ensure_bootstrap_admin(db)
             interrupted = job_service.mark_interrupted_jobs(db)
@@ -74,18 +90,24 @@ def create_app() -> FastAPI:
     def on_shutdown() -> None:
         job_service.get_worker().stop()
 
-    @app.get("/api/v1/health")
+    @app.api_route("/api/v1/health", methods=["GET", "HEAD"])
     def health() -> dict:
         return {"ok": True, "version": settings.version}
 
     # SPA static files (built frontend); the API keeps precedence.
-    static_dir = settings.data_dir / "web" if (settings.data_dir / "web").is_dir() else Path(__file__).resolve().parent.parent / "web" / "dist"
-    if static_dir.is_dir():
+    configured_static = getattr(settings, "static_dir_override", None)
+    candidates = [
+        Path(configured_static) if configured_static else None,
+        settings.data_dir / "web",
+        Path(__file__).resolve().parent.parent / "web" / "dist",
+    ]
+    static_dir = next((c for c in candidates if c and c.is_dir()), None)
+    if static_dir is not None:
         assets = static_dir / "assets"
         if assets.is_dir():
             app.mount("/assets", StaticFiles(directory=assets), name="assets")
 
-        @app.get("/{full_path:path}", include_in_schema=False)
+        @app.api_route("/{full_path:path}", methods=["GET", "HEAD"], include_in_schema=False)
         async def spa(full_path: str) -> FileResponse:
             candidate = (static_dir / full_path).resolve()
             if full_path and candidate.is_file() and str(candidate).startswith(str(static_dir.resolve())):
