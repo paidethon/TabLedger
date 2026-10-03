@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from app.ai import service as ai_service
-from app.auth.deps import CSRF, CurrentUser, DB
+from app.auth.deps import CSRF, DB, CurrentUser
 from app.services import settings_service
 
 router = APIRouter(prefix="/api/v1/settings", tags=["settings"])
@@ -186,8 +186,9 @@ class PrivacyPatch(BaseModel):
 
 @router.get("/privacy")
 def get_privacy(db: DB, user: CurrentUser) -> dict:
-    from app.db.models import AIClassificationCache
     from sqlalchemy import func, select
+
+    from app.db.models import AIClassificationCache
 
     cache_count = int(db.scalar(select(func.count(AIClassificationCache.id))) or 0)
     return {

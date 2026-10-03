@@ -23,7 +23,6 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from app.ai.sanitizer import normalize_key
 from app.config import get_settings
 from app.db.models import AIClassificationCache, AIUsage
 from app.services.settings_service import ai_api_key, get_ai_settings
@@ -255,7 +254,7 @@ def _classify_chunk(
                 temperature=0,
                 response_format=response_format,
             )
-        except Exception as exc:  # noqa: BLE001 - degrade gracefully
+        except Exception as exc:
             last_error = exc
             logger.warning("AI request failed (attempt %s): %s", attempt + 1, type(exc).__name__)
             continue
@@ -318,7 +317,7 @@ def test_connection(db: DBSession) -> dict[str, Any]:
             "input_tokens": int(getattr(usage_obj, "prompt_tokens", 0) or 0),
             "output_tokens": int(getattr(usage_obj, "completion_tokens", 0) or 0),
         }
-    except Exception as exc:  # noqa: BLE001 - surfaced to the settings UI
+    except Exception as exc:
         return {"ok": False, "error": type(exc).__name__}
 
 
@@ -339,7 +338,7 @@ def list_models(db: DBSession) -> dict[str, Any]:
             if model_id:
                 model_ids.append(str(model_id))
         return {"ok": True, "models": model_ids[:200]}
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return {"ok": False, "error": type(exc).__name__, "models": []}
 
 

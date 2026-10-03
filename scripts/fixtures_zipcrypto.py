@@ -103,7 +103,7 @@ def write_zipcrypto_zip(output: str | Path, entries: list[tuple[bytes, str]], pa
             # The last header byte must equal the CRC's highest byte
             # (bit 3 of the general-purpose flag is not set here).
             check_byte = (crc >> 24) & 0xFF
-            header = cipher.encrypt(bytes(list(os.urandom(11)) + [check_byte]))
+            header = cipher.encrypt(bytes(bytearray(os.urandom(11)) + bytearray([check_byte])))
             encrypted = header + cipher.encrypt(body)
 
             local = struct.pack(

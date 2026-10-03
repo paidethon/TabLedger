@@ -15,7 +15,7 @@ from app.core.parsers.accounts import (
     normalize_payment_method,
     normalize_platform_account,
 )
-from app.core.parsers.wechat import parse_bill_money, json_money, signed_money, parse_declared_summary
+from app.core.parsers.wechat import json_money, parse_bill_money, parse_declared_summary, signed_money
 
 EXPECTED_HEADERS = [
     "交易时间",
@@ -70,7 +70,7 @@ def extract_zfb(path_or_bytes, config: EngineConfig) -> tuple[list[dict[str, Any
             continue
         padded = row + [""] * max(0, len(EXPECTED_HEADERS) - len(row))
         values = padded[: len(EXPECTED_HEADERS)]
-        raw = dict(zip(EXPECTED_HEADERS, values))
+        raw = dict(zip(EXPECTED_HEADERS, values, strict=False))
         location = f"{location_name}#line={line_number}"
         flags: list[str] = []
 

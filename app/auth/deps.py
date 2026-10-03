@@ -7,7 +7,6 @@ import ipaddress
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
-from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
 from app.auth import sessions as session_svc

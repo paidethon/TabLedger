@@ -93,7 +93,7 @@ def extract_wx(path_or_bytes, config: EngineConfig) -> tuple[list[dict[str, Any]
         values = values[: len(EXPECTED_HEADERS)]
         if not any(clean_text(value) for value in values):
             continue
-        raw = dict(zip(EXPECTED_HEADERS, values))
+        raw = dict(zip(EXPECTED_HEADERS, values, strict=False))
         location = f"Sheet1!A{row_number}:K{row_number}"
         flags: list[str] = []
 

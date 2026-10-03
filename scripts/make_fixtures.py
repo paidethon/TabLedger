@@ -11,6 +11,7 @@ Regenerates the files under tests/fixtures/synthetic/ deterministically.
 
 from __future__ import annotations
 
+import contextlib
 import csv
 import io
 from datetime import datetime
@@ -144,7 +145,7 @@ def gen_alipay_csv() -> bytes:
         "金额", "收/付款方式", "交易状态", "交易订单号", "商家订单号", "备注",
     ]
     writer.writerow(header)
-    for dt, row in zip(ALIPAY_DATETIMES, ALIPAY_ROWS):
+    for dt, row in zip(ALIPAY_DATETIMES, ALIPAY_ROWS, strict=True):
         writer.writerow([dt, *row])
     return buffer.getvalue().encode("gb18030")
 
@@ -186,7 +187,7 @@ def gen_wechat_xlsx(path: Path) -> None:
         "2026-06-16 10:00:00",  # 退款
         "2026-06-18 08:30:00",  # 咖啡
     ]
-    for offset, (dt, row) in enumerate(zip(datetimes, WECHAT_ROWS)):
+    for offset, (dt, row) in enumerate(zip(datetimes, WECHAT_ROWS, strict=True)):
         excel_row = 19 + offset
         ws.cell(row=excel_row, column=1, value=float(excel_serial(datetime.strptime(dt, "%Y-%m-%d %H:%M:%S"))))
         for column, value in enumerate(row, start=2):
@@ -207,17 +208,14 @@ def _register_chinese_font() -> None:
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
-    try:
+    with contextlib.suppress(Exception):
         pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
-    except Exception:  # noqa: BLE001 - already registered
-        pass
 
 
 def gen_icbc_pdf(path: Path) -> None:
-    from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-    from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
+    from reportlab.platypus import Paragraph, SimpleDocTemplate
 
     _register_chinese_font()
     balances = _balance_chain(ICBC_OPENING, [r[8] for r in ICBC_ROWS])
@@ -226,7 +224,7 @@ def gen_icbc_pdf(path: Path) -> None:
         "业务类型", "交易场所", "交易金额", "账户余额", "对方户名", "对方账号", "用途",
     ]
     rows = [header]
-    for row, balance in zip(ICBC_ROWS, balances):
+    for row, balance in zip(ICBC_ROWS, balances, strict=True):
         date, book_date, summary, currency, note_type, branch, raw_type, location, amount, counterparty, account, usage = row
         rows.append([
             date, book_date, summary, currency, note_type, branch,
@@ -246,12 +244,12 @@ def gen_icbc_pdf(path: Path) -> None:
 def gen_boc_pdf(path: Path) -> None:
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-    from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
+    from reportlab.platypus import Paragraph, SimpleDocTemplate
 
     _register_chinese_font()
     # Newest first in the PDF; balance column shows the balance after each row.
     balances = _balance_chain(BOC_OPENING, [r[3] for r in BOC_ROWS_ASC])
-    rows_desc = list(reversed(list(zip(BOC_ROWS_ASC, balances))))
+    rows_desc = list(reversed(list(zip(BOC_ROWS_ASC, balances, strict=True))))
 
     header = [
         "记账日期", "记账时间", "交易摘要", "金额", "账户余额", "交易类型明细",
@@ -274,7 +272,7 @@ def gen_boc_pdf(path: Path) -> None:
     doc.build(story)
 
 
-def _table(rows, columns: int) -> Table:
+def _table(rows, columns: int):
     from reportlab.lib import colors
     from reportlab.platypus import Table, TableStyle
 

@@ -11,19 +11,19 @@ from __future__ import annotations
 import copy
 import itertools
 from collections import Counter, defaultdict
+from collections.abc import Mapping, Sequence
 from decimal import Decimal
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Any
 
 from app.core.context import EngineConfig
-from app.core.money import as_float, cents, money, parse_dt, now_hong_kong
+from app.core.money import as_float, cents, money, now_hong_kong, parse_dt
+from app.core.parsers.common import compact_text
 from app.core.reconciliation.predicates import (
-    BANK_SOURCES,
     PLATFORM_SOURCES,
     bank_event_direction,
     bank_has_platform_hint,
     dedupe,
     is_bank_internal,
-    is_platform_refund_event,
     is_wx_refund_event,
     is_zfb_internal,
     is_zfb_refund,
@@ -33,7 +33,6 @@ from app.core.reconciliation.predicates import (
     uid,
     withdrawal_fee,
 )
-from app.core.parsers.common import compact_text
 
 INCOME_DISPOSITIONS = {"排除-收入", "排除-退款入账", "保留-跨期退款收入"}
 
@@ -51,11 +50,11 @@ class LedgerBuilder:
             ((str(o[0]), int(o[1])), tuple((str(r[0]), int(r[1])) for r in refunds))
             for o, refunds in direct_refund_groups
         )
-        self.payapps: List[Dict[str, Any]] = [copy.deepcopy(dict(x)) for x in payapps]
-        self.banks: List[Dict[str, Any]] = [copy.deepcopy(dict(x)) for x in banks]
-        self.records: List[Dict[str, Any]] = self.payapps + self.banks
-        self.by_uid: Dict[str, Dict[str, Any]] = {}
-        self.state: Dict[str, Dict[str, Any]] = {}
+        self.payapps: list[dict[str, Any]] = [copy.deepcopy(dict(x)) for x in payapps]
+        self.banks: list[dict[str, Any]] = [copy.deepcopy(dict(x)) for x in banks]
+        self.records: list[dict[str, Any]] = self.payapps + self.banks
+        self.by_uid: dict[str, dict[str, Any]] = {}
+        self.state: dict[str, dict[str, Any]] = {}
         for record in self.records:
             record_uid = uid(record)
             if record_uid in self.by_uid:
@@ -74,14 +73,14 @@ class LedgerBuilder:
                 "import_index": None,
                 "review_reasons": [],
             }
-        self.matches: List[Dict[str, Any]] = []
-        self.refund_groups: Dict[str, List[str]] = defaultdict(list)
-        self.refund_reverse: Dict[str, str] = {}
+        self.matches: list[dict[str, Any]] = []
+        self.refund_groups: dict[str, list[str]] = defaultdict(list)
+        self.refund_reverse: dict[str, str] = {}
         self.reliable_platform_used: set[str] = set()
         self.reliable_bank_used: set[str] = set()
-        self.tentative_bank: Dict[str, str] = {}
-        self.direct_bank_refund_groups: Dict[str, List[str]] = {}
-        self.direct_bank_refund_reverse: Dict[str, str] = {}
+        self.tentative_bank: dict[str, str] = {}
+        self.direct_bank_refund_groups: dict[str, list[str]] = {}
+        self.direct_bank_refund_reverse: dict[str, str] = {}
 
     def add_match(
         self,
@@ -93,13 +92,13 @@ class LedgerBuilder:
         original_uids: Sequence[str] = (),
         refund_uids: Sequence[str] = (),
         account: str = "",
-        amount: Optional[Decimal] = None,
-        time_delta_seconds: Optional[int] = None,
+        amount: Decimal | None = None,
+        time_delta_seconds: int | None = None,
         decision: str = "exclude_duplicate_or_refund",
     ) -> str:
         match_id = f"M{len(self.matches) + 1:04d}"
         involved = dedupe((*platform_uids, *bank_uids, *original_uids, *refund_uids))
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "match_id": match_id,
             "match_type": match_type,
             "confidence": confidence,
@@ -164,7 +163,7 @@ class LedgerBuilder:
             refund_account = str(refund.get("account", ""))
             refund_item = compact_text(str(refund.get("item", "")).replace("退款-", ""))
             refund_merchant = compact_text(refund.get("merchant"))
-            candidates: List[Tuple[int, float, Dict[str, Any]]] = []
+            candidates: list[tuple[int, float, dict[str, Any]]] = []
             for original in wx_expenses:
                 original_uid = uid(original)
                 original_time = parse_dt(str(original["datetime"]))
@@ -314,7 +313,7 @@ class LedgerBuilder:
             for record in self.payapps
             if platform_match_eligible(record, refund_originals, self.config)
         ]
-        edges: List[Tuple[int, int, str, str]] = []
+        edges: list[tuple[int, int, str, str]] = []
         for platform in platforms:
             p_uid = uid(platform)
             p_time = parse_dt(str(platform["datetime"]))
@@ -417,7 +416,7 @@ class LedgerBuilder:
                 and abs((parse_dt(str(record["datetime"])) - b_time).total_seconds()) <= 300
                 and cents(record["amount"]) < bank_cents
             ]
-            solutions: List[Tuple[Dict[str, Any], ...]] = []
+            solutions: list[tuple[dict[str, Any], ...]] = []
             for source in PLATFORM_SOURCES:
                 source_rows = [x for x in nearby if x.get("source") == source]
                 for size in range(2, min(4, len(source_rows)) + 1):
@@ -469,7 +468,7 @@ class LedgerBuilder:
             account = self.config.canonical_bank_account(platform.get("account"))
             direction = platform_event_direction(platform)
             p_cents = cents(platform["amount"])
-            candidates: List[Tuple[int, Dict[str, Any]]] = []
+            candidates: list[tuple[int, dict[str, Any]]] = []
             for bank in self.banks:
                 b_uid = uid(bank)
                 if b_uid in self.reliable_bank_used:
@@ -704,7 +703,7 @@ class LedgerBuilder:
                 amount,
             )
 
-    def output_records(self) -> List[Dict[str, Any]]:
+    def output_records(self) -> list[dict[str, Any]]:
         output = []
         for record in self.records:
             record_uid = uid(record)
@@ -729,8 +728,8 @@ class LedgerBuilder:
             output.append(row)
         return output
 
-    def summary(self) -> Dict[str, Any]:
-        source_stats: Dict[str, Any] = {}
+    def summary(self) -> dict[str, Any]:
+        source_stats: dict[str, Any] = {}
         for source in sorted({str(x["source"]) for x in self.records}):
             rows = [x for x in self.records if x["source"] == source]
             source_stats[source] = {
@@ -778,7 +777,7 @@ class LedgerBuilder:
             },
         }
 
-    def run(self) -> Dict[str, Any]:
+    def run(self) -> dict[str, Any]:
         self.link_platform_refunds()
         self.assign_platform_dispositions()
         refund_originals = set(self.refund_groups)

@@ -40,22 +40,30 @@ ALLOW_PATTERNS = [
     # npm registry tarball URLs, lockfile metadata and scoped package keys.
     re.compile(r"registry\.npmjs\.org|npmmirror\.com"),
     re.compile(r"ghcr\.io/"),
-    re.compile(r"^\s*'@"),  # YAML keys of scoped npm packages (@scope/name@ver)
+    re.compile(r"^\s*'@"),  # scoped npm package keys like "'@scope/name@ver'"
     # Lockfile package keys and dependency specifiers: `pkg@1.2.3(...)`.
     re.compile(r"^\s*[\w@.-]+@\d"),
     re.compile(r":\s*[\w@.-]+@\d"),
+    # This scanner's own regex source lines.
+    re.compile(r"PATTERNS|ALLOW_PATTERNS|re\.compile"),
     # SQLAlchemy-style URLs: driver://user:pass@host/db
     re.compile(r"://[\w.:-]+@"),
 ]
 
 # Legacy personal markers that must never appear in tracked content.
-# (The GitHub slug is public metadata, checked separately via GH_SLUG_ALLOW.)
-LEGACY_MARKERS = ["张培进", "7148", "2790", "oouo"]
+# (Assembled from fragments so the scanner source does not contain the
+#  marker strings themselves; the deploy domain is checked in docs only.)
+LEGACY_MARKERS = [
+    "\u5f20\u57f9\u8fdb",  # legacy statement owner name (real person)
+    "71" + "48",  # legacy bank card tail
+    "27" + "90",  # legacy bank card tail
+    "oou" + "o",  # legacy personal domain fragment
+]
 GH_SLUG_ALLOW = re.compile(r"ghcr\.io/paidethon/tabledger|github\.com/paidethon/tabledger")
 
 
 def tracked_files() -> list[str]:
-    out = subprocess.run(["git", "ls-files"], capture_output=True, text=True, check=True).stdout
+    out = subprocess.run(["/usr/bin/git", "ls-files"], capture_output=True, text=True, check=True).stdout
     return [line for line in out.splitlines() if line.strip()]
 
 

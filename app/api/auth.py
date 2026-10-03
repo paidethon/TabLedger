@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.auth import passwords as pwd
 from app.auth import sessions as session_svc
-from app.auth.deps import CSRF, CurrentUser, DB, client_ip, get_session_token
+from app.auth.deps import CSRF, DB, CurrentUser, client_ip, get_session_token
 from app.config import get_settings
 from app.db.models import User
 

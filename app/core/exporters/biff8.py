@@ -12,8 +12,8 @@ from __future__ import annotations
 import math
 import struct
 from collections import OrderedDict
+from collections.abc import Iterator, Sequence
 from pathlib import Path
-from typing import Iterator, Sequence
 
 EXPECTED_HEADERS = [
     "日期",

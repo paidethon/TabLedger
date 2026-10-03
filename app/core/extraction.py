@@ -117,7 +117,7 @@ def detect_and_extract(
                 metadata["files"].append(
                     {"name": item.name, "source": source, "status": "ok", "password_matched": bool(matched_password), **meta}
                 )
-        except Exception as exc:  # noqa: BLE001 - report per-file failure
+        except Exception as exc:
             errors.append(f"{item.name}: {exc}")
             metadata["files"].append({"name": item.name, "status": "error", "reason": str(exc)})
 

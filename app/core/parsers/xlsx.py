@@ -9,13 +9,15 @@ size-capped so a decompression bomb cannot exhaust memory.
 from __future__ import annotations
 
 import io
+import logging
 import re
 import zipfile
 from datetime import datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
-from typing import Any
 
 from defusedxml import ElementTree as DefusedET
+
+logger = logging.getLogger(__name__)
 
 XLSX_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 
@@ -115,8 +117,8 @@ def _first_sheet_target(archive: zipfile.ZipFile, names: set[str]) -> str:
                         target = f"xl/{target}"
                     if target in names and ".." not in target and ":" not in target:
                         return target
-        except Exception:  # noqa: BLE001 - fall back to the conventional path
-            pass
+        except Exception:
+            logger.debug("workbook.xml sheet resolution failed; using fallback path")
     if "xl/worksheets/sheet1.xml" in names:
         return "xl/worksheets/sheet1.xml"
     raise ValueError("xlsx does not contain a readable first worksheet")

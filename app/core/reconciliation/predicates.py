@@ -8,8 +8,9 @@ detection now goes through :class:`EngineConfig` (``owner_names`` and
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from decimal import Decimal
-from typing import Any, Mapping
+from typing import Any
 
 from app.core.context import EngineConfig
 from app.core.money import money

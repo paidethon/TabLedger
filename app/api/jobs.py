@@ -4,18 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import json
-import time
 from pathlib import Path
-from typing import Any
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy import select
 
-from app.auth.deps import CSRF, CurrentUser, DB, client_ip
+from app.auth.deps import CSRF, DB, CurrentUser
 from app.config import get_settings
-from app.db.models import Job, JobEvent, JobFile, Transaction, utcnow
+from app.db.models import Job, JobEvent, JobFile, Transaction
 from app.services import export_service, job_service, settings_service
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
@@ -122,7 +120,7 @@ async def create_job(
                 fingerprint=fingerprint,
             )
         )
-    job_service._add_event(db, job_id, "created", f"上传 {len(payloads)} 个文件")  # noqa: SLF001
+    job_service._add_event(db, job_id, "created", f"上传 {len(payloads)} 个文件")
     # Store passwords before the job row becomes visible to the worker,
     # then commit and wake so the worker can never see the job first.
     job_service.get_worker().store_passwords(job_id, password_list)

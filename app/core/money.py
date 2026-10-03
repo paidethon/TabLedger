@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
-from functools import lru_cache
+from decimal import ROUND_HALF_UP, Decimal
+from functools import cache
 from typing import Any
 
 CENT = Decimal("0.01")
@@ -27,7 +27,7 @@ def as_float(value: Decimal) -> float:
     return float(value.quantize(CENT, rounding=ROUND_HALF_UP))
 
 
-@lru_cache(maxsize=None)
+@cache
 def parse_dt(value: str) -> datetime:
     return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
 

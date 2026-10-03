@@ -13,13 +13,13 @@ from __future__ import annotations
 import hashlib
 import hmac
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
 from app.config import get_settings
-from app.db.models import LoginAttempt, Session, User, utcnow
+from app.db.models import LoginAttempt, Session, utcnow
 
 
 def hash_token(token: str) -> str:
@@ -149,4 +149,4 @@ def session_expiry() -> datetime:
 
 
 def utcnow_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()

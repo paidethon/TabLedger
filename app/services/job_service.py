@@ -16,7 +16,7 @@ import shutil
 import threading
 import uuid
 from datetime import datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any
 
@@ -110,10 +110,10 @@ def retention_hours(privacy: dict[str, Any]) -> int | None:
 # Worker
 # ---------------------------------------------------------------------------
 
-_worker: "JobWorker | None" = None
+_worker: JobWorker | None = None
 
 
-def get_worker() -> "JobWorker":
+def get_worker() -> JobWorker:
     global _worker
     if _worker is None:
         _worker = JobWorker()
@@ -169,7 +169,7 @@ class JobWorker:
                         break
                     try:
                         self._run_job(db, job_id)
-                    except Exception:  # noqa: BLE001 - a job must never crash the worker
+                    except Exception:
                         logger.exception("job %s failed", job_id)
                         db.rollback()
                         job = db.get(Job, job_id)

@@ -7,7 +7,8 @@ this module is storage-agnostic and works on plain rule dicts with keys
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any
 
 INCOME_CATEGORIES = [
     "AA款", "红包", "返利", "利息", "退税", "转账", "其他", "中奖", "理财盈利",
