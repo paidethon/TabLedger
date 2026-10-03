@@ -21,8 +21,10 @@ WORKDIR /app
 
 COPY pyproject.toml README.md alembic.ini ./
 COPY app ./app
-RUN pip install --no-cache-dir . \
-    && rm -rf /app/build /app/tabledger.egg-info
+COPY docker/constraints.txt /tmp/constraints.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -c /tmp/constraints.txt . \
+    && rm -rf /app/build /app/tabledger.egg-info /tmp/constraints.txt
 
 COPY --from=web-build /build/dist /app/web-static
 

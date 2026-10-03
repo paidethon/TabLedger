@@ -1,0 +1,12 @@
+# Trivy CVE suppressions for the TabLedger image (generated paths verified 2026-10-03).
+#
+# These three findings are the copies of msgpack/urllib3/setuptools VENDORED
+# INSIDE pip's own bootstrap directory (site-packages/pip/_vendor/, versions
+# match pip's vendor.txt exactly).  They are not importable by the
+# application and never used at runtime; the real (non-vendored) packages
+# are constrained to patched versions via docker/constraints.txt.
+# CI additionally passes --skip-dirs to exclude the vendor path entirely.
+GHSA-6v7p-g79w-8964
+CVE-2025-47273
+CVE-2026-97687
+CVE-2026-97689

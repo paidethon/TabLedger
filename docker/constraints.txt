@@ -1,0 +1,7 @@
+# Security floor constraints for the runtime image (installed via
+# `pip install -c docker/constraints.txt .` in the Dockerfile).
+# Raised above vulnerable versions reported by trivy; kept as floors so
+# normal dependency resolution still picks newer compatible releases.
+urllib3>=2.8.0
+msgpack>=1.2.1
+setuptools>=78.1.1
