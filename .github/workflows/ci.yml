@@ -136,7 +136,7 @@ jobs:
           ignorefile: .trivyignore
           skip-dirs: /usr/local/lib/python3.12/site-packages/pip/_vendor
           scanners: vuln
-          pkg-types: library
+          vuln-type: library
           exit-code: "1"
       - name: Trivy OS-package report (advisory, non-blocking)
         uses: aquasecurity/trivy-action@v0.36.0
@@ -145,7 +145,7 @@ jobs:
           severity: HIGH,CRITICAL
           ignorefile: .trivyignore
           scanners: vuln
-          pkg-types: os
+          vuln-type: os
           exit-code: "0"
       - name: Clean-start smoke test
         run: |
