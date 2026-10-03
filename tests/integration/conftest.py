@@ -38,7 +38,9 @@ def client(tmp_path, monkeypatch):
     import app.db.database as database_module
 
     config_module._settings = None
-    database_module.reset_engine_for_tests(f"sqlite:///{tmp_path}/test.sqlite3")
+    # Startup migrations write to settings.database_path; point the test
+    # engine at that exact file so both paths agree.
+    database_module.reset_engine_for_tests(f"sqlite:///{tmp_path}/tabledger.sqlite3")
 
     import app.main as main_module
 
