@@ -40,13 +40,30 @@ PLATFORM_FIELDS = [
 ]
 
 
+PLACEHOLDER_RE = re.compile(r"^[\s\-_—]+$")
+
+
 def normalize_text(value: Any) -> str:
-    return re.sub(r"\s+", "", str(value or ""))
+    """Join visual line wraps while retaining meaningful in-line spaces."""
+
+    if value is None:
+        return ""
+    lines = []
+    for line in str(value).replace("\r", "\n").split("\n"):
+        cleaned = re.sub(r"[\t\f\v ]+", " ", line).strip()
+        if cleaned:
+            lines.append(cleaned)
+    result = "".join(lines).strip()
+    if not result or PLACEHOLDER_RE.fullmatch(result):
+        return ""
+    return result
 
 
 def normalize_account(value: Any) -> str:
-    text = re.sub(r"\s+", "", str(value or ""))
-    return "" if text in {"-", "—", "/"} else text
+    text = normalize_text(value)
+    if not text:
+        return ""
+    return re.sub(r"\s+", "", text)
 
 
 def compact_text(value: Any) -> str:
